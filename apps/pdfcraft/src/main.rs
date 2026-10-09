@@ -107,9 +107,16 @@ fn main() -> eframe::Result {
     if integrated {
         viewport = viewport.with_fullsize_content_view(true).with_titlebar_shown(false).with_title_shown(false);
     }
-    migrate_legacy_folders();
+    // An explicit QA profile keeps settings, recent files and recovery independent of the user.
+    let profile_dir = std::env::var_os("PDFCRAFT_PROFILE_DIR").filter(|v| !v.is_empty()).map(std::path::PathBuf::from);
+    if profile_dir.is_none() && !cfg!(all(windows, feature = "zh-hans")) {
+        migrate_legacy_folders();
+    }
     // eframe would otherwise derive the settings folder from the app id: keep it under "PdfCraft".
-    let persistence_path = eframe::storage_dir("PdfCraft").map(|d| d.join("app.ron"));
+    let persistence_path = profile_dir
+        .as_ref()
+        .map(|d| d.join("app.ron"))
+        .or_else(|| eframe::storage_dir(pdfcraft_ui_egui::APP_STORAGE_NAME).map(|d| d.join("app.ron")));
     let mut native = eframe::NativeOptions { viewport, persistence_path, ..Default::default() };
     configure_gpu(&mut native);
     // Finder, Open With and the Dock deliver files as Apple events, not arguments; catch the one
@@ -126,6 +133,12 @@ fn main() -> eframe::Result {
             if let Some(json) = cc.storage.and_then(|s| s.get_string("pdfcraft").or_else(|| s.get_string(LEGACY_STORAGE_KEY))) {
                 app.restore(&json);
             }
+            // Apply the patch once even to an existing English profile. Later language
+            // choices are respected; command-line --language still takes final precedence.
+            #[cfg(feature = "zh-hans")]
+            if cc.storage.and_then(|s| s.get_string("zh_patch_applied")).as_deref() != Some("1") {
+                app.language = "zh-hans".to_owned();
+            }
             app.integrated_titlebar = integrated;
             app.update_source = Some(std::sync::Arc::new(updates::latest_release));
             app.keychain_ids = cfg!(target_os = "macos");
@@ -141,7 +154,8 @@ fn main() -> eframe::Result {
                 }
             }
             // Autosave unsaved changes; offer to recover documents a crashed session left behind.
-            if let Some(dir) = pdfcraft_ui_egui::RecoveryStore::default_dir() {
+            let recovery_dir = profile_dir.as_ref().map(|d| d.join("Recovery")).or_else(pdfcraft_ui_egui::RecoveryStore::default_dir);
+            if let Some(dir) = recovery_dir {
                 app.enable_recovery(pdfcraft_ui_egui::RecoveryStore::new(dir));
             }
             if create_images {

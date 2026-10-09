@@ -10,10 +10,15 @@ fn main() {
     println!("cargo::rerun-if-env-changed=CRAFT_FONTS_DIR");
     println!("cargo::rerun-if-env-changed=CRAFT_FONTS_REQUIRED");
     let mut src = String::from("pub static CRAFT_FONTS: &[CraftFont] = &[\n");
-    if let Some(dir) = std::env::var_os("CRAFT_FONTS_DIR").map(PathBuf::from) {
+    let dir = std::env::var_os("CRAFT_FONTS_DIR").map(PathBuf::from);
+    if cfg!(feature = "require-hans") && dir.is_none() {
+        println!("cargo::error=the Simplified Chinese build requires CRAFT_FONTS_DIR with a licensed Hans face");
+        return;
+    }
+    if let Some(dir) = dir {
         match craft_fonts(&dir) {
             Ok(entries) => src.push_str(&entries),
-            Err(e) if std::env::var_os("CRAFT_FONTS_REQUIRED").is_some() => {
+            Err(e) if cfg!(feature = "require-hans") || std::env::var_os("CRAFT_FONTS_REQUIRED").is_some() => {
                 println!("cargo::error=CRAFT_FONTS_DIR={}: {e}", dir.display());
             }
             Err(e) => println!("cargo::warning=building without craft-fonts: CRAFT_FONTS_DIR={}: {e}", dir.display()),
@@ -33,6 +38,7 @@ fn craft_fonts(dir: &std::path::Path) -> Result<String, String> {
     let text = std::fs::read_to_string(&manifest).map_err(|e| format!("{}: {e}", manifest.display()))?;
     let wasm = std::env::var("CARGO_CFG_TARGET_ARCH").is_ok_and(|a| a == "wasm32");
     let mut out = String::new();
+    let mut has_hans = false;
     for line in text.lines().map(str::trim).filter(|l| !l.is_empty() && !l.starts_with('#')) {
         let f: Vec<&str> = line.split(" | ").map(str::trim).collect();
         let [family, style, file, scripts, ..] = f.as_slice() else {
@@ -41,6 +47,7 @@ fn craft_fonts(dir: &std::path::Path) -> Result<String, String> {
         if wasm && !(*family == "BIZ UDPGothic" && *style == "Regular") {
             continue;
         }
+        has_hans |= scripts.split(',').any(|script| script.trim() == "Hans");
         let path = dir.join(file).canonicalize().map_err(|e| format!("{file}: {e}"))?;
         println!("cargo::rerun-if-changed={}", path.display());
         let scripts: Vec<String> = scripts.split(',').map(|s| format!("{:?}", s.trim())).collect();
@@ -50,6 +57,9 @@ fn craft_fonts(dir: &std::path::Path) -> Result<String, String> {
             scripts.join(", "),
             path.display().to_string(),
         );
+    }
+    if cfg!(feature = "require-hans") && !has_hans {
+        return Err("the Simplified Chinese build requires a Hans face in fonts/manifest.txt".to_owned());
     }
     Ok(out)
 }

@@ -127,6 +127,10 @@ M0 → M1 → M2 → M3 → M4 must happen in order. After M4, M5–M12 can run 
 
 Newest first. One line per session: the date, what moved, and the new overall percentage.
 
+- 2026-10-09 (M14, Chinese patch commit): verified the delivered source snapshot, aligned fork identity tests and the glyph assertion with the Chinese build, and passed 897 workspace tests (4 ignored), all-target Clippy, 29-crate wasm, assets, layering and parity checks. Production behavior and the delivered package are unchanged; overall estimates unchanged.
+
+- 2026-10-08: local Windows Chinese patch: required licensed Hans font, complete-catalog glyph gate, first-run Chinese with legacy settings compatibility, reversible installer and trademark removal. 98 targeted tests, 8 installer regressions, PDF round-trip checks and five rendered views verified. Overall estimates unchanged.
+
 - **2026-10-08 (M14, Windows Chinese Auto):** Auto now reads the Windows display language after locale environment overrides, selecting Simplified or Traditional Chinese through the existing locale mapping. Added Chinese region/script and Windows query regressions. Chinese font delivery remains incomplete. Localization remains partial; overall ≈ 30–35% (unchanged).
 
 - **2026-10-08 (M3, themes):** Toolbar and Display theme now share System, Light and Dark preferences, one command path and persistent settings; the duplicate View toggle is removed. Effective colours track the OS only in System mode, with egui popup styles kept in sync. Overall estimate unchanged (about 30–35%).

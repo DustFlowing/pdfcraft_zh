@@ -507,6 +507,19 @@ fn preferences_menu_and_shortcut_allow_switching_interface_languages() {
 }
 
 #[test]
+fn simplified_chinese_preferences_translates_every_workspace_mode() {
+    let (mut h, c) = harness();
+    ok(&mut h, &c, "ui.set", json!({"key": "language", "value": "zh-hans"}));
+    ok(&mut h, &c, "ui.command", json!({"id": "app.preferences"}));
+    let found = ok(&mut h, &c, "ui.inspect", json!({"role": "RadioButton"}));
+    let labels: Vec<_> = found["widgets"].as_array().unwrap().iter().filter_map(|w| w["label"].as_str()).collect();
+    for label in ["所有工具", "阅读", "编辑", "转换", "电子签名"] {
+        assert!(labels.contains(&label), "{labels:?}");
+    }
+    assert!(!labels.contains(&"All Tools"));
+}
+
+#[test]
 fn japanese_dialogs_errors_and_custom_action_names() {
     let (mut h, c) = harness();
     ok(&mut h, &c, "ui.set", json!({"key": "language", "value": "ja"}));

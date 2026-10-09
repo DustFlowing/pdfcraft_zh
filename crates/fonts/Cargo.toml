@@ -8,6 +8,9 @@ license.workspace = true
 [lints]
 workspace = true
 
+[features]
+require-hans = []
+
 [dependencies]
 pdfcraft-cos = { workspace = true }
 # Glyph outlines of the bundled script font (typed signatures); already in the tree via egui.

@@ -252,13 +252,13 @@ pub(crate) fn preferences_body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tok
     ui.horizontal(|ui| {
         ui.label(tl!("Default workspace mode"));
         for (mode, label) in [
-            (crate::Mode::AllTools, "All Tools"),
-            (crate::Mode::Read, "Read"),
-            (crate::Mode::Edit, "Edit"),
-            (crate::Mode::Convert, "Convert"),
-            (crate::Mode::Sign, "E-Sign"),
+            (crate::Mode::AllTools, tl!("All tools")),
+            (crate::Mode::Read, tl!("Read")),
+            (crate::Mode::Edit, tl!("Edit")),
+            (crate::Mode::Convert, tl!("Convert")),
+            (crate::Mode::Sign, tl!("E-Sign")),
         ] {
-            ui.radio_value(&mut app.default_mode, mode, tl!(label));
+            ui.radio_value(&mut app.default_mode, mode, label);
         }
     });
     ui.label(

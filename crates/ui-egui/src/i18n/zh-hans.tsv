@@ -807,7 +807,7 @@
 	Applied 1 redaction mark. Save to remove the content from the file.	已应用 1 个密文标记。保存以从文件中删除内容。
 	Applied {n} redaction marks. Save to remove the content from the file.	已应用 {n} 个密文标记。保存以从文件中删除内容。
 	JavaScript Console	JavaScript 控制台
-	JavaScript is turned off (Preferences ▸ JavaScript).	JavaScript 已关闭（首选项 ▸ JavaScript）。
+	JavaScript is turned off (Preferences ▸ JavaScript).	JavaScript 已关闭（首选项 > JavaScript）。
 	Output appears here.	输出显示在此处。
 	Document JavaScripts	文档 JavaScript
 	Script Name:	脚本名称：
@@ -1890,3 +1890,7 @@
 	XFA form: its fields and its XFA data are kept in step, so other viewers show what you fill in.	XFA 表单：字段与 XFA 数据保持同步，以便其他阅读器显示您填写的内容。
 @plural	{n} page|{n} pages	{n} 页
 @plural	{n} field|{n} fields	{n} 个字段
+	Project community	项目社区
+	Unofficial Simplified Chinese build	非官方简体中文构建版
+	Rendering: hayro · UI: egui · Icons: Lucide (ISC) · Chinese font: WenQuanYi Micro Hei (Apache-2.0)	渲染：hayro · 界面：egui · 图标：Lucide（ISC）· 中文字体：文泉驿微米黑（Apache-2.0）
+	CONFIDENTIAL	机密

@@ -1312,9 +1312,19 @@ impl PdfCraftApp {
     }
 }
 
+/// A Windows replacement patch keeps the installed program's settings and recovery paths.
+pub const APP_STORAGE_NAME: &str = if cfg!(all(windows, feature = "zh-hans")) { "PrintCraft" } else { "PdfCraft" };
+
 impl eframe::App for PdfCraftApp {
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
-        storage.set_string("pdfcraft", self.persist());
+        let state = self.persist();
+        #[cfg(feature = "zh-hans")]
+        {
+            // Older PrintCraft releases read this key, so rollback preserves preferences.
+            storage.set_string("printcraft", state.clone());
+            storage.set_string("zh_patch_applied", "1".to_owned());
+        }
+        storage.set_string("pdfcraft", state);
     }
 
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
@@ -1443,5 +1453,44 @@ impl eframe::App for PdfCraftApp {
         palette::show(self, &ctx);
         dialogs::show(self, &ctx);
         widgets::toast(self, &ctx);
+    }
+}
+
+#[cfg(all(test, feature = "zh-hans"))]
+mod zh_patch_storage_tests {
+    use super::*;
+    use eframe::App as _;
+
+    #[derive(Default)]
+    struct MemoryStorage(std::collections::BTreeMap<String, String>);
+    impl eframe::Storage for MemoryStorage {
+        fn get_string(&self, key: &str) -> Option<String> {
+            self.0.get(key).cloned()
+        }
+        fn set_string(&mut self, key: &str, value: String) {
+            self.0.insert(key.to_owned(), value);
+        }
+        fn remove_string(&mut self, key: &str) {
+            self.0.remove(key);
+        }
+        fn flush(&mut self) {}
+    }
+
+    #[test]
+    fn patch_preferences_remain_readable_after_rollback() {
+        let mut app = PdfCraftApp::new();
+        app.language = "en".to_owned();
+        app.comment_prefs.author = "中文测试".to_owned();
+        let mut storage = MemoryStorage::default();
+        app.save(&mut storage);
+        assert_eq!(storage.0["zh_patch_applied"], "1");
+        assert_eq!(storage.0["printcraft"], storage.0["pdfcraft"]);
+        let mut restored = PdfCraftApp::new();
+        restored.restore(&storage.0["printcraft"]);
+        assert_eq!(restored.language, "en");
+        assert_eq!(restored.comment_prefs.author, "中文测试");
+        if cfg!(windows) {
+            assert_eq!(APP_STORAGE_NAME, "PrintCraft");
+        }
     }
 }

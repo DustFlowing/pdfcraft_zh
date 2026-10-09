@@ -3,9 +3,8 @@ Copyright (c) 2026 ArtCraft Team and the PdfCraft contributors.
 Licensed under the MIT License or the Apache License, Version 2.0, at your option
 (LICENSE-MIT, LICENSE-APACHE).
 
-The ArtCraft name, wordmark and logos in docs/brand/ are trademarks of the ArtCraft Team. They are
-not open source and are not covered by the license above; their terms are in
-docs/brand/LICENSE-brand.txt.
+This is an unofficial Simplified Chinese build. Upstream trademark graphics have been removed.
+The original authors retain their copyright; this build is not endorsed by them.
 
 Third-party material
 
@@ -22,6 +21,10 @@ list (author, source, license) is in ATTRIBUTION.md.
   https://github.com/storytold/craft-fonts/blob/main/ATTRIBUTION.md (BIZ UDPGothic, Shippori Mincho,
   BIZ UDMincho; the web build only BIZ UDPGothic Regular) under the SIL Open Font License 1.1. Those
   packages carry each font's licence as OFL-<family>.txt.
+- WenQuanYi Micro Hei 0.2.0-beta — Apache License 2.0 (the Apache option of its dual licence).
+  Digitized data copyright 2007 Google Corporation; copyright 2008-2009 WenQuanYi Project
+  Board of Trustees. The original TTC is embedded without modification. See the packaged
+  wqy-microhei/LICENSE_Apache2.txt, README.txt and AUTHORS.txt.
 - hayro (rendering, via crates.io) — Apache-2.0 OR MIT. Its `embed-fonts` feature bundles the Foxit
   standard-14 Type 1 fonts under BSD-3-Clause ("Copyright 2014 PDFium Authors"), and hayro-cmap bundles
   Adobe CMap resources under BSD-3-Clause.

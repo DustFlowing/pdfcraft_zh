@@ -410,6 +410,8 @@ mod tests {
             assert_eq!(first_supported(&format!("{tag}\r\n")), Lang::from_code("zh-hant"));
         }
         assert_eq!(first_supported("en-US\r\n"), Some(Lang::EN));
+        assert_eq!(first_supported("fr-FR\nzh-CN\nen-US"), Lang::from_code("zh-hans"));
+        assert_eq!(first_supported("en-US\nzh-CN"), Some(Lang::EN));
         assert_eq!(first_supported("fr-FR\r\n"), None);
         assert_eq!(first_supported("\r\n"), None);
     }
@@ -417,10 +419,13 @@ mod tests {
     #[cfg(target_os = "windows")]
     #[test]
     fn windows_display_language_query_returns_a_locale_tag() {
-        let tag = windows_ui_language().expect("Windows should report a display language");
-        let tag = tag.trim();
-        assert!(!tag.is_empty());
-        assert!(tag.split('-').all(|part| !part.is_empty() && part.bytes().all(|b| b.is_ascii_alphanumeric())));
+        let list = windows_ui_language().expect("Windows should report display languages");
+        assert!(!list.trim().is_empty());
+        // A multilingual Windows profile returns multiple tags, one per line.
+        for tag in list.lines() {
+            assert!(!tag.is_empty());
+            assert!(tag.split('-').all(|part| !part.is_empty() && part.bytes().all(|b| b.is_ascii_alphanumeric())), "{tag:?}");
+        }
     }
 
     #[test]
@@ -702,6 +707,31 @@ mod tests {
         assert_eq!(tr(zh, "报告.pdf"), "报告.pdf");
         for menu in ["File", "Edit", "Pages", "View", "Help", "Preferences…", "Interface language"] {
             assert!(has(zh, menu), "missing {menu}");
+        }
+    }
+
+    /// Translation coverage is insufficient: every translated character needs a real glyph.
+    #[test]
+    fn simplified_chinese_labels_have_glyphs() {
+        let chinese_fonts = pdfcraft_fonts::ui_chinese_fonts();
+        if cfg!(feature = "zh-hans") {
+            assert!(!chinese_fonts.is_empty(), "a Chinese release must embed a Hans face");
+        }
+        if chinese_fonts.is_empty() {
+            eprintln!("skipping Chinese glyph checks: no Hans face in CRAFT_FONTS_DIR");
+            return;
+        }
+        let zh = Lang::from_code("zh-hans").expect("zh-hans registered");
+        let (entries, errors) = parse_entries(zh.0.source, 1);
+        assert!(errors.is_empty(), "{errors:?}");
+        let chars: std::collections::BTreeSet<char> =
+            entries.iter().flat_map(|e| e.translation.chars()).chain(zh.name().chars()).filter(|c| !c.is_control()).collect();
+        use egui::epaint::text::{Fonts, TextOptions};
+        let mut fonts = Fonts::new(TextOptions::default(), crate::theme::font_definitions_for(true));
+        for id in [egui::FontId::proportional(13.0), egui::FontId::monospace(13.0), crate::theme::medium(13.0), crate::theme::semibold(17.0)] {
+            let missing: Vec<String> =
+                chars.iter().filter(|c| !fonts.has_glyphs(&id, &c.to_string())).map(|c| format!("{c} (U+{:04X})", *c as u32)).collect();
+            assert!(missing.is_empty(), "{id:?}: missing Chinese catalog glyphs: {missing:?}");
         }
     }
 

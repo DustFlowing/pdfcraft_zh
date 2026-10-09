@@ -234,7 +234,7 @@ pub(crate) fn body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens, kind: M
                             egui::TextEdit::multiline(&mut d.wm.text)
                                 .desired_rows(2)
                                 .desired_width(320.0)
-                                .hint_text("CONFIDENTIAL")
+                                .hint_text(tl!("CONFIDENTIAL"))
                                 .id_salt("wm-text"),
                         );
                     });
